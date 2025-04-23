@@ -1,193 +1,70 @@
-//TRẦN TRUNG KIÊN - 20233859 - Galaxy
-
 import * as THREE from 'three';
-import * as dat from 'dat.gui';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-const gui = new dat.GUI();
+export function init(container){
+  const scene = new THREE.Scene()
 
-const canvas = document.querySelector('canvas.webgl');
+  const car = Car()
+  scene.add(car)
 
-const sizes = {
-	width: window.innerWidth,
-	height: window.innerHeight,
-};
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
+  scene.add(ambientLight)
 
-const scene = new THREE.Scene();
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.6)
+  dirLight.position.set(100, -300, 400)
+  scene.add(dirLight)
 
-const parameters = {
-	size: 0.01,
-	count: 100000,
-	branches: 8,
-	radius: 5,
-	spin: 1,
-	randomness: 0.1,
-	randomnessPower: 3,
-	insideColor: 0xff6030,
-	outsideColor: 0x391eb9,
-};
+  const aspectRatio = window.innerWidth / window.innerHeight
+  const cameraWidth = 150
+  const cameraHeight = cameraWidth / aspectRatio
 
-let points;
-let pointGeometry;
-let pointMaterial;
+  const camera = new THREE.OrthographicCamera(
+    cameraWidth / -2,
+    cameraWidth / 2,
+    cameraHeight / 2,
+    cameraHeight / -2,
+    0,
+    1000
+  )
 
-function generateGalaxy() {
-	const positions = new Float32Array(parameters.count * 3);
-	const colors = new Float32Array(parameters.count * 3);
+  camera.position.set(200, -200, 300)
+  camera.up.set(0, 0, 1)
+  camera.lookAt(0, 0, 0)
 
-	const colorInside = new THREE.Color(parameters.insideColor);
-	const colorOutside = new THREE.Color(parameters.outsideColor);
+  const renderer = new THREE.WebGLRenderer({antialias: true})
+  renderer.setSize(window.innerWidth,  window.innerHeight)
+  renderer.render(scene, camera)
 
-	if (points) {
-		scene.remove(points);
-		pointGeometry.dispose();
-		pointMaterial.dispose();
-	}
+  container.appendChild(renderer.domElement)
 
-	for (let i = 0; i < parameters.count; i++) {
-		const i3 = i * 3;
-		const branchAngle =
-			((i % parameters.branches) / parameters.branches) * (Math.PI * 2);
-		const radius =
-			Math.pow(Math.random(), parameters.randomnessPower) * parameters.radius;
-		// const radius = Math.random() * parameters.radius;
-		const spin = radius + parameters.spin;
+  function Car() {
+    const car = new THREE.Group()
 
-		const currentColor = colorInside.clone();
-		currentColor.lerp(colorOutside, radius / parameters.radius);
+    const backWheel = new THREE.Mesh(
+      new THREE.BoxGeometry(12, 33, 22),
+      new THREE.MeshLambertMaterial({ color: 0x333333})
+    )
 
-		const randomX =
-			Math.pow(Math.random(), parameters.randomnessPower) *
-			(Math.random() < 0.5 ? 1 : -1) *
-			radius *
-			parameters.randomness;
-		const randomY =
-			Math.pow(Math.random(), parameters.randomnessPower) *
-			(Math.random() < 0.5 ? 1 : -1) *
-			radius *
-			parameters.randomness;
-		const randomZ =
-			Math.pow(Math.random(), parameters.randomnessPower) *
-			(Math.random() < 0.5 ? 1 : -1) *
-			radius *
-			parameters.randomness;
+    backWheel.position.z = 6
+    backWheel.position.x = -18
+    car.add(backWheel)
 
-		positions[i3] = Math.cos(branchAngle + spin) * radius + randomX;
-		positions[i3 + 1] = randomY;
-		positions[i3 + 2] = Math.sin(branchAngle + spin) * radius + randomZ;
+    const frontWheel = new THREE.Mesh(
+      new THREE.BoxGeometry(12, 33, 22),
+      new THREE.MeshLambertMaterial({ color: 0x333333})
+    )
 
-		colors[i3] = currentColor.r;
-		colors[i3 + 1] = currentColor.g;
-		colors[i3 + 2] = currentColor.b;
-	}
+    frontWheel.position.z = 6
+    frontWheel.position.x = 18
+    car.add(frontWheel)
 
-	pointGeometry = new THREE.BufferGeometry();
-	pointMaterial = new THREE.PointsMaterial({
-		size: parameters.size,
-		sizeAttenuation: true,
-		depthWrite: false,
-		blending: THREE.AdditiveBlending,
-		vertexColors: true,
-	});
+    const main = new THREE.Mesh(
+      new THREE.BoxGeometry(60, 30, 15),
+      new THREE.MeshLambertMaterial({ color: 0xa52523})
+    )
 
-	pointGeometry.setAttribute(
-		'position',
-		new THREE.BufferAttribute(positions, 3),
-	);
-	pointGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    main.position.z = 12
+    car.add(main)
 
-	points = new THREE.Points(pointGeometry, pointMaterial);
-
-	scene.add(points);
+    return car;
+  }
 }
-generateGalaxy();
-
-const galaxy = gui.addFolder('galaxy');
-
-galaxy
-	.add(parameters, 'size')
-	.min(0)
-	.max(0.5)
-	.step(0.0001)
-	.onFinishChange(generateGalaxy);
-galaxy
-	.add(parameters, 'count')
-	.min(100)
-	.max(1000000)
-	.step(100)
-	.onFinishChange(generateGalaxy);
-galaxy
-	.add(parameters, 'spin')
-	.min(0)
-	.max(10)
-	.step(1)
-	.onFinishChange(generateGalaxy);
-galaxy
-	.add(parameters, 'radius')
-	.min(1)
-	.max(10)
-	.step(1)
-	.onFinishChange(generateGalaxy);
-galaxy
-	.add(parameters, 'branches')
-	.min(1)
-	.max(10)
-	.step(1)
-	.onFinishChange(generateGalaxy);
-galaxy
-	.add(parameters, 'randomness')
-	.min(0)
-	.max(1)
-	.step(0.001)
-	.onFinishChange(generateGalaxy);
-galaxy
-	.add(parameters, 'randomnessPower')
-	.min(1)
-	.max(5)
-	.step(1)
-	.onFinishChange(generateGalaxy);
-galaxy.addColor(parameters, 'insideColor').onFinishChange(generateGalaxy);
-galaxy.addColor(parameters, 'outsideColor').onFinishChange(generateGalaxy);
-
-galaxy.open();
-
-const camera = new THREE.PerspectiveCamera(
-	75,
-	sizes.width / sizes.height,
-	0.1,
-	100,
-);
-camera.position.set(3, 2, 3);
-scene.add(camera);
-
-
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-
-const renderer = new THREE.WebGLRenderer({ canvas });
-renderer.setSize(sizes.width, sizes.height);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-const time = new THREE.Clock();
-
-const tick = () => {
-	const elapsedTime = time.getElapsedTime();
-
-	controls.update();
-
-	renderer.render(scene, camera);
-
-	window.requestAnimationFrame(tick);
-};
-tick();
-
-window.addEventListener('resize', () => {
-	sizes.width = window.innerWidth;
-	sizes.height = window.innerHeight;
-
-	camera.aspect = sizes.width / sizes.height;
-	camera.updateProjectionMatrix();
-
-	renderer.setSize(sizes.width, sizes.height);
-	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-});
