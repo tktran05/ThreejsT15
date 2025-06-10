@@ -43,7 +43,9 @@ export function init(container){
 
   animate();
 
-  function House() {
+}
+
+ export function House() {
     const house = new THREE.Group()
 
     const main = new THREE.Mesh(
@@ -217,4 +219,3 @@ export function init(container){
 
     return house;
   }
-}
