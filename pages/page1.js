@@ -24,7 +24,7 @@ export function init(container){
   camera.position.set(0, 100, 300); 
   camera.lookAt(0, 0, 0);
 
-  const renderer = new THREE.WebGLRenderer();
+  const renderer = new THREE.WebGLRenderer({ antialias: true }); // giảm răng cưa
   renderer.setSize(window.innerWidth, window.innerHeight);
 
   container.appendChild(renderer.domElement);
