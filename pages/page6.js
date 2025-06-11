@@ -74,6 +74,9 @@ export function init(container) {
   const house = House();
   scene.add(house);
 
+  const cac = createRepeatedArrowShapes()
+  scene.add(cac)
+
   function animate() {
     requestAnimationFrame(animate);
     controls.update();
@@ -108,3 +111,44 @@ export function House() {
 
   return house;
 }
+
+
+function createArrowShapeMesh(color = 0x79888a) {
+  // Vẽ hình dấu ">" trên mặt phẳng XY
+  const shape = new THREE.Shape();
+  shape.moveTo(0, 0);
+  shape.lineTo(1.5, 1.5);
+  shape.lineTo(0, 3);
+  shape.lineTo(0.5, 3);
+  shape.lineTo(2, 1.5);
+  shape.lineTo(0.5, 0);
+  shape.lineTo(0, 0);
+
+  // Extrude để tạo khối 3D từ shape 2D
+  const extrudeSettings = {
+    depth: 0.05,          // sẽ đùn theo trục Z
+    bevelEnabled: false,
+  };
+
+  const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  const material = new THREE.MeshStandardMaterial({ color });
+  const mesh = new THREE.Mesh(geometry, material);
+
+  // Quay để mũi tên nhọn theo trục Z
+  mesh.rotation.y = Math.PI / 2;
+
+  return mesh;
+}
+
+function createRepeatedArrowShapes(count = 10, spacing = 3) {
+  const group = new THREE.Group();
+
+  for (let i = 0; i < count; i++) {
+    const arrow = createArrowShapeMesh();
+    arrow.position.x = i * spacing;
+    group.add(arrow);
+  }
+
+  return group;
+}
+

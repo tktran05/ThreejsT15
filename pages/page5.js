@@ -67,7 +67,7 @@ export function init(container) {
 
   // 🌱 Mặt đất
   const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(500, 500),
+    new THREE.PlaneGeometry(1000, 1000),
     new THREE.MeshLambertMaterial({
       color: 0x87ceeb, // Màu xanh da trời
       side: THREE.DoubleSide,
@@ -111,16 +111,19 @@ export function House(){
     stairs2.rotation.y = -Math.PI / 2;
     group.add(stairs2)
 
-    
-    const material3 = new THREE.MeshLambertMaterial({ color: 0x078997 });
-    const geometry3 = new THREE.BoxGeometry(300, 12, 90);
+    //sàn tầng 0
+    const material3 = new THREE.MeshLambertMaterial({ color: 0x79888a });
+    const geometry3 = new THREE.BoxGeometry(300, 12, 100);
     const mesh3 = new THREE.Mesh(geometry3, material3)
     mesh3.position.y = 6
-    mesh3.position.z = - 80
+    mesh3.position.z = - 85
+    mesh3.castShadow = true;
+    mesh3.receiveShadow = true;
     group.add(mesh3)
 
+    //cột trụ chính
     const material4 = new THREE.MeshLambertMaterial({ color: 0x79888a });
-    const geometry4 = new THREE.BoxGeometry(1, 60, 6);
+    const geometry4 = new THREE.BoxGeometry(1, 70, 6);
     const mesh4 = new THREE.Mesh(geometry4, material4)
     mesh4.position.x = 20
     mesh4.position.y = 40
@@ -156,6 +159,250 @@ export function House(){
     group.add(mesh7)
 
 
+    const geometry5 = new THREE.BoxGeometry(300, 2, 70);
+    const m8 = new THREE.Mesh(geometry5, material4) // sàn tầng 1
+    m8.position.y = 35
+    m8.position.z = -77
+    m8.castShadow = true;
+    m8.receiveShadow = true; 
+
+    group.add(m8)
+
+    const geometry6 = new THREE.BoxGeometry(55, 2, 90);
+    const m9 = new THREE.Mesh(geometry6, material4) // sàn tầng 1.1
+    m9.position.x = 122.5
+    m9.position.y = 35
+    m9.position.z = -89
+    m9.castShadow = true;
+    m9.receiveShadow = true; 
+
+    group.add(m9)
+
+    const m10 = new THREE.Mesh(geometry6, material4) // sàn tầng 1.2
+    m10.position.x = -122.5
+    m10.position.y = 35
+    m10.position.z = -89
+    m10.castShadow = true;
+    m10.receiveShadow = true; 
+
+    group.add(m10)
+
+    const geo1 = new THREE.BoxGeometry(54, 2, 90);
+    const x1 = new THREE.Mesh(geo1, material4) // sàn giữa lồi ra 1
+    x1.position.y = 35
+    x1.position.z = -64
+    x1.castShadow = true;
+    x1.receiveShadow = true; 
+
+    group.add(x1)
+
+    const x2 = HCN(45, 2, 18 , 0, 42, -40, 0x79888a)
+    group.add(x2)
+
+    const x3 = HCN(45, 3, 18 , 0, 45, -40, 0x79888a)
+    group.add(x3)
+
+    const x4 = HCN(45, 3, 18 , 0, 64, -40, 0x79888a)
+    group.add(x4 )
+
+    const geometry7 = new THREE.BoxGeometry(325, 2, 85);
+    const m11 = new THREE.Mesh(geometry7, material4) // sàn tầng 2
+    m11.position.y = 75
+    m11.position.z = -75
+    m11.castShadow = true;
+    m11.receiveShadow = true; 
+
+    group.add(m11)
+
+    //cột trụ phụ 
+    const geometry8 = new THREE.BoxGeometry(1, 40, 5);
+    const a1 = new THREE.Mesh(geometry8, material4)
+    a1.position.x = 13
+    a1.position.y = 55
+    a1.position.z = -44.5
+    a1.castShadow = true;
+    a1.receiveShadow = true; 
+    group.add(a1)
+
+    const a2 = new THREE.Mesh(geometry8, material4)
+    a2.position.x = 11
+    a2.position.y = 55
+    a2.position.z = -44.5
+    a2.castShadow = true;
+    a2.receiveShadow = true; 
+    group.add(a2)
+
+    const a3 = new THREE.Mesh(geometry8, material4)
+    a3.position.x = -13
+    a3.position.y = 55
+    a3.position.z = -44.5
+    a3.castShadow = true;
+    a3.receiveShadow = true; 
+    group.add(a3)
+
+    const a4 = new THREE.Mesh(geometry8, material4)
+    a4.position.x = -11
+    a4.position.y = 55
+    a4.position.z = -44.5
+    a4.castShadow = true;
+    a4.receiveShadow = true; 
+    group.add(a4)
+
+    // sàn phụ tầng 2
+    const a5 = new THREE.Mesh(geometry6, material4) // sàn tầng 2.1
+    a5.position.x = 135
+    a5.position.y = 75
+    a5.position.z = -89
+    a5.castShadow = true;
+    a5.receiveShadow = true; 
+
+    group.add(a5)
+
+    const a6 = new THREE.Mesh(geometry6, material4) // sàn tầng 2.2
+    a6.position.x = -135
+    a6.position.y = 75
+    a6.position.z = -89
+    a6.castShadow = true;
+    a6.receiveShadow = true; 
+
+    group.add(a6)
+    //list trụ phía trước
+    const arrow = createRepeatedArrowShapes() // tạo list trụ mũi tên >
+    arrow.scale.setScalar(8)
+    arrow.position.y = 12
+    arrow.position.z = - 46
+    
+    group.add(arrow)
+    
+    const tru = createRepeatedOctagonalPrisms()
+    tru.position.x = 132
+    tru.position.y = 24
+    tru.position.z = -46
+    group.add(tru)
+
+    const truXien = createArrowShapeMesh1()
+    truXien.scale.setScalar(8)
+    truXien.position.x = 96
+    truXien.position.y = 12
+    truXien.position.z = -56
+
+    group.add(truXien)
+
+
+    const tru1 = createRepeatedOctagonalPrisms()
+    tru1.position.x = -132
+    tru1.position.y = 24
+    tru1.position.z = -46
+    group.add(tru1)
+
+    const truXien1 = createArrowShapeMesh1()
+    truXien1.scale.setScalar(8)
+    truXien1.position.x = -96
+    truXien1.position.y = 12
+    truXien1.position.z = -44
+    truXien1.rotation.y = Math.PI
+
+    group.add(truXien1)
+
+    // trường cạnh bên 
+    
+    const x5 = HCN(3, 24, 88 , 147, 24, -88, 0x79888a)
+    group.add(x5 )
+
+    const x6 = HCN(3, 24, 88 , -147, 24, -88, 0x79888a)
+    group.add(x6 )
+
+    // list trụ cột mặt tiền tầng 2
+    const x7 = cot(11, 1, 40, 10, 11, 0x79888a)
+    x7.position.x = 90
+    x7.position.y = 35
+    x7.position.z = - 40
+    group.add(x7)
+
+    const x8 = cot(11, 1, 40, 10, 11, 0x79888a)
+    x8.position.x = -90
+    x8.position.y = 35
+    x8.position.z = - 40
+    group.add(x8)
+
+    // cột con lồng trong
+    const x9 = cot(35, 0.6, 20, 2, 2, 0x566263)
+    x9.position.x = -66.5
+    x9.position.y = 44
+    x9.position.z = - 40
+    group.add(x9)
+
+    const y9 = cot(35, 0.6, 20, 2, 2, 0x566263)
+    y9.position.x = 66.5
+    y9.position.y = 44
+    y9.position.z = - 40
+    group.add(y9)
+
+    // 3 thanh ngang mặt tiền
+    const y1 = HCN(300, 4, 2 , 0, 63, -38, 0x79888a)
+    group.add(y1)
+
+    const y2 = HCN(300, 2, 2 , 0, 67, -38, 0x79888a)
+    group.add(y2)
+
+    const y3 = HCN(300, 4, 2 , 0, 42, -38, 0x79888a)
+    group.add(y3)
+
+    //list cột trụ mặt bên
+    const y4 = cot(8, 1, 40, 9, 11.6, 0x79888a)
+    y4.position.x = 154
+    y4.position.y = 35
+    y4.position.z = - 87
+    y4.rotation.y = Math.PI/2
+    group.add(y4)
+
+    const y5 = cot(8, 1, 40, 9, 11.6, 0x79888a)
+    y5.position.x = -154
+    y5.position.y = 35
+    y5.position.z = - 87
+    y5.rotation.y = Math.PI/2
+    group.add(y5)
+
+    // 6 thanh ngang mặt tiền
+    const y6 = HCN(2, 4, 90 , 155, 63, -87, 0x79888a)
+    group.add(y6)
+
+    const y7 = HCN(2, 2, 90 , 155, 67, -87, 0x79888a)
+    group.add(y7)
+
+    const y8 = HCN(2, 4, 90 , 155, 43, -87, 0x79888a)
+    group.add(y8)
+
+    const y12 = HCN(2, 4, 90 , -155, 63, -87, 0x79888a)
+    group.add(y12)
+
+    const y10 = HCN(2, 2, 90 , -155, 67, -87, 0x79888a)
+    group.add(y10)
+
+    const y11 = HCN(2, 4, 90 , -155, 43, -87, 0x79888a)
+    group.add(y11)
+
+    //sân thượng
+    const z1 = HCN(280, 5, 67 , 0, 78, -75, 0xffffff)
+    group.add(z1)
+
+    // sân con 1
+    const z2 = HCN(70, 4, 80 , 0, 95, -75, 0xffffff)
+    group.add(z2)
+
+    const z3 = HCN(60, 4, 70 , 0, 98, -75, 0x79888a)
+    group.add(z3)
+
+    // SÂN CON phải
+    
+    const z4 = HCN(40, 4, 50 , 128, 90, -75, 0xffffff)
+    group.add(z4)
+
+    // SÂN CON TRÁi
+    
+    const z5 = HCN(40, 4, 50 , -128, 90, -75, 0xffffff)
+    group.add(z5)
+
 
 
 
@@ -165,6 +412,89 @@ export function House(){
 
 
     //function con 
+
+    function HCN(length, height, width, x, y, z, color){
+      const material = new THREE.MeshLambertMaterial({ color: color})
+      const geometry = new THREE.BoxGeometry(length, height, width)
+      const Box = new THREE.Mesh(geometry, material)
+      Box.position.x = x
+      Box.position.y = y
+      Box.position.z = z
+      Box.receiveShadow = true
+      Box.castShadow = true
+      return Box
+    }
+
+    function createArrowShapeMesh(color = 0x79888a) {
+      // Vẽ hình dấu ">" trên mặt phẳng XY
+      const shape = new THREE.Shape();
+      shape.moveTo(0, 0);
+      shape.lineTo(1.5, 1.5);
+      shape.lineTo(0, 3);
+      shape.lineTo(0.5, 3);
+      shape.lineTo(2, 1.5);
+      shape.lineTo(0.5, 0);
+      shape.lineTo(0, 0);
+    
+      // Extrude để tạo khối 3D từ shape 2D
+      const extrudeSettings = {
+        depth: 0.15,          // sẽ đùn theo trục Z
+        bevelEnabled: false,
+      };
+    
+      const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      const material = new THREE.MeshStandardMaterial({ color });
+      const mesh = new THREE.Mesh(geometry, material);
+    
+      // Quay để mũi tên nhọn theo trục Z
+      mesh.rotation.y = Math.PI / 2;
+
+      mesh.castShadow = true;
+      mesh.receiveShadow = true; 
+    
+      return mesh;
+    }
+
+    function createArrowShapeMesh1(color = 0x79888a) {
+      // Vẽ hình dấu ">" trên mặt phẳng XY
+      const shape = new THREE.Shape();
+      shape.moveTo(0, 0);
+      shape.lineTo(0.5, 1.5);
+      shape.lineTo(0, 3);
+      shape.lineTo(1, 3);
+      shape.lineTo(1, 1.5);
+      shape.lineTo(1, 0);
+      shape.lineTo(0, 0);
+    
+      // Extrude để tạo khối 3D từ shape 2D
+      const extrudeSettings = {
+        depth: 1.5,          // sẽ đùn theo trục Z
+        bevelEnabled: false,
+      };
+    
+      const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      const material = new THREE.MeshStandardMaterial({ color });
+      const mesh = new THREE.Mesh(geometry, material);
+
+      mesh.castShadow = true;
+      mesh.receiveShadow = true; 
+    
+      return mesh;
+    }
+    
+function createRepeatedArrowShapes(count = 14, spacing = 1.6) {
+  const group = new THREE.Group();
+  const offset = (count - 1) / 2;
+
+  for (let i = 0; i < count; i++) {
+    const arrow = createArrowShapeMesh();
+    arrow.position.x = (i - offset) * spacing;
+    group.add(arrow);
+  }
+
+  return group;
+}
+
     function Stairs(step) {
         const stairs = new THREE.Group();
         const material = new THREE.MeshLambertMaterial({ color: 0x8B4513 }); 
@@ -241,7 +571,7 @@ export function House(){
         return group
     }
 
-    function cot(numColumns, columnWidth, columnHeight, columnDepth, spacing) {
+    function cot(numColumns, columnWidth, columnHeight, columnDepth, spacing, color) {
         const columnsGroup = new THREE.Group(); // Tạo một nhóm để chứa tất cả các cột
     
         // Đặt giá trị mặc định và đảm bảo các tham số hợp lệ
@@ -252,7 +582,7 @@ export function House(){
         spacing = spacing || 10;           // Khoảng cách mặc định giữa các cột
     
         // Vật liệu cho các cột (ví dụ: màu xám đá)
-        const material = new THREE.MeshLambertMaterial({ color: 0x808080 }); 
+        const material = new THREE.MeshLambertMaterial({ color: color }); 
     
         // Tính toán tổng chiều dài mà các cột và khoảng cách chiếm dụng
         // Ví dụ: 3 cột, mỗi cột rộng 5, khoảng cách 10 => 5 + 10 + 5 + 10 + 5 = 35
@@ -287,5 +617,29 @@ export function House(){
     
         return columnsGroup; // Trả về nhóm chứa tất cả các cột
     }
+
+
+    function createOctagonalPrism(radius = 3, height = 24, color = 0x79888a) {
+    const geometry = new THREE.CylinderGeometry(radius, radius, height, 6);
+    const material = new THREE.MeshStandardMaterial({ color });
+    const mesh = new THREE.Mesh(geometry, material);
+    return mesh;
+    }
+
+    function createRepeatedOctagonalPrisms(count = 3, spacing = 14) {
+    const group = new THREE.Group();
+
+    // Tính offset để trải đều từ tâm
+    const offset = (count - 1) / 2;
+
+    for (let i = 0; i < count; i++) {
+      const prism = createOctagonalPrism();
+      prism.position.x = (i - offset) * spacing;
+      group.add(prism);
+    }
+
+    return group;
+  }
+
 
 }
