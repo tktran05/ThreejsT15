@@ -524,18 +524,6 @@ export function House(){
     const k12 = HCN(25, 5, 25, 56, 77, -262, 0xffffff)
     group.add(k12)
 
-    const Flag = flag()
-    Flag.scale.setScalar(0.7)
-    Flag.position.x = 11
-    Flag.position.y = 113
-    Flag.position.z = -35
-
-    group.add(Flag)
-
-
-
-
-
     return group
 
 
@@ -543,6 +531,18 @@ export function House(){
 
     function HCN(length, height, width, x, y, z, color){
       const material = new THREE.MeshLambertMaterial({ color: color})
+      const geometry = new THREE.BoxGeometry(length, height, width)
+      const Box = new THREE.Mesh(geometry, material)
+      Box.position.x = x
+      Box.position.y = y
+      Box.position.z = z
+      Box.receiveShadow = true
+      Box.castShadow = true
+      return Box
+    }
+
+      function HCN1(length, height, width, x, y, z, texture){
+      const material = new THREE.MeshLambertMaterial({ map: texture})
       const geometry = new THREE.BoxGeometry(length, height, width)
       const Box = new THREE.Mesh(geometry, material)
       Box.position.x = x
@@ -768,53 +768,4 @@ function createRepeatedArrowShapes(count = 14, spacing = 1.6) {
 
     return group;
   }
-
-  function flag() {
-    const sizeW = 30, sizeH = 20, segW = 30, segH = 20;
-  
-    const geometry = new THREE.PlaneGeometry(sizeW, sizeH, segW, segH).toNonIndexed();
-    const positionAttr = geometry.attributes.position;
-    const vertexCount = positionAttr.count;
-    const originalPositions = new Float32Array(positionAttr.array); // sao lưu vị trí gốc
-  
-    const materialParams = {
-      side: THREE.DoubleSide,
-    };
-  
-    const texture = new THREE.TextureLoader().load('textures/flag.png');
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.minFilter = THREE.LinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    materialParams.map = texture;
-  
-    const material = new THREE.MeshLambertMaterial(materialParams);
-    const flag = new THREE.Mesh(geometry, material);
-    flag.castShadow = true;
-    flag.position.set(0, sizeH / 2, 0);
-  
-    // Sóng động
-    const h = 0.5, v = 1, w = 0.4, s = 0.5;
-  
-    function animateFlag() {
-      const time = Date.now() * s / 50;
-      for (let i = 0; i < vertexCount; i++) {
-        const x = originalPositions[i * 3];
-        const y = originalPositions[i * 3 + 1];
-  
-        // Không cập nhật sóng cho cột bên trái (gần -sizeW / 2)
-        if (x <= -sizeW / 2 + 0.01) continue;
-  
-        const z = Math.sin(h * x + v * y - time) * w * x / 4;
-        positionAttr.setZ(i, z);
-      }
-      positionAttr.needsUpdate = true;
-      requestAnimationFrame(animateFlag);
-    }
-  
-    animateFlag();
-    return flag;
-  
-  }
-
 }

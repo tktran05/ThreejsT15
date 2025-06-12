@@ -182,7 +182,7 @@ export function Tree2({
     const levelHeight = trunkHeight + i * (foloageHeight + spacing);
     const levelRadius = trunkRadius * (1 - i / foliageLevels) * foliageRadius;
     const geoFoliage = new THREE.ConeGeometry(levelRadius, foloageHeight, 8);
-    const matFoliage = new THREE.MeshStandardMaterial({color:0x228b22,roughness:0.8});
+    const matFoliage = new THREE.MeshStandardMaterial({color:0x02a164,roughness:0.8});
     const meshFoliage = new THREE.Mesh(geoFoliage,matFoliage);
     meshFoliage.position.set(0, levelHeight*0.8-1, 0);
     meshFoliage.castShadow = true;
