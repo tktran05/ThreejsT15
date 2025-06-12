@@ -1,4 +1,4 @@
-// AUTHOR: Nguyễn Minh Huy - ID:
+// AUTHOR: Nguyễn Minh Huy - ID: 20233852
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';

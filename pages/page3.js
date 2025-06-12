@@ -1,4 +1,4 @@
-// AUTHOR: Phạm Danh Tuấn Dũng - ID
+// AUTHOR: Phạm Danh Tuấn Dũng - ID: 20233844
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 

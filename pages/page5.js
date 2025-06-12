@@ -1,4 +1,4 @@
-//AUTHOR: Trần Phan Anh - ID: 
+//AUTHOR: Trần Phan Anh - ID: 20233830
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 

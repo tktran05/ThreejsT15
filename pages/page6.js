@@ -4,9 +4,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 import { House } from './page1.js';
+
 import { Gate, Wall } from './page2.js';
+
 import { Ground, Flag, Road } from './page3.js';
+
 import { Tree1, Tree2, createFountain } from './page4.js';
+
 import { Tank } from './page5.js'
 
 export function init(container) {
