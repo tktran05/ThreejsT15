@@ -625,7 +625,16 @@ function createRepeatedArrowShapes(count = 14, spacing = 1.6) {
 
     function Stairs(step) {
         const stairs = new THREE.Group();
-        const material = new THREE.MeshLambertMaterial({ color: 0xffffff }); 
+
+        const textureLoader = new THREE.TextureLoader();
+          const stairTexture = textureLoader.load('/textures/brick.jpg');
+
+          const material = new THREE.MeshStandardMaterial({
+            map: stairTexture,
+            metalness: 0.2,
+            roughness: 0.8
+          });
+
         let width = 4
         let height = 2
         for (let i = 0; i < step; i++) {

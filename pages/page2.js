@@ -1,5 +1,8 @@
+// AUTHOR: Nguyễn Minh Huy - ID:
+
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { playMusic } from './page6';
 
 export function init(container) {
     container.innerHTML = '';
@@ -25,6 +28,11 @@ export function init(container) {
     );
     camera.position.set(0, 5, 25);
     camera.lookAt(0, 3.75, 0);
+
+    //music
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+    const backgroundMusic = playMusic(listener, '/sounds/huy.mp3');
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);

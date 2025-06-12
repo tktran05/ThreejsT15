@@ -1,4 +1,4 @@
-// AUTHOR: Trần Trung Kiên - ID: 20233859
+// AUTHOR: Phạm Danh Tuấn Dũng - ID
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 

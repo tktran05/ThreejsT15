@@ -7,15 +7,23 @@ import { House } from './page1.js';
 import { Gate, Wall } from './page2.js';
 import { Ground, Flag, Road } from './page3.js';
 import { Tree1, Tree2, createFountain } from './page4.js';
+import { Tank } from './page5.js'
 
 export function init(container) {
   // 🧭 Thiết lập Camera
   const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
-  camera.position.set(0, 60, 450);
+  camera.position.set(0, 60, 480);
   camera.lookAt(0, 0, 0);
 
   // 🏞️ Tạo Scene
   const scene = new THREE.Scene();
+
+  // Music
+  const listener = new THREE.AudioListener();
+  camera.add(listener);
+
+  // Gọi hàm để phát nhạc
+  const backgroundMusic = playMusic(listener, '/sounds/kien.mp3');
 
   // 🌌 Skybox
   const loader = new THREE.CubeTextureLoader();
@@ -157,6 +165,7 @@ export function init(container) {
 
   // 🛣️ Đường
   const road = Road(600, 80);
+  road.position.y = 1
   road.position.z = 400;
   road.rotation.y = Math.PI / 2;
   scene.add(road);
@@ -177,12 +186,150 @@ export function init(container) {
   const ground = Ground();
   scene.add(ground);
 
-  // 🎞️ Vòng lặp hoạt họa
-  function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
+  //Tank
+
+  const tank1 = Tank()
+  tank1.position.z = 350
+  tank1.scale.setScalar(0.5)
+  tank1.rotation.z = Math.PI/2
+  scene.add(tank1)
+
+  const tank2 = Tank()
+  tank2.position.x = 23
+  tank2.position.z = 395
+  tank2.scale.setScalar(0.5)
+  tank2.rotation.z = Math.PI/2
+  scene.add(tank2)
+
+  const tank3 = Tank()
+  tank3.position.x = -23
+  tank3.position.z = 395
+  tank3.scale.setScalar(0.5)
+  tank3.rotation.z = Math.PI/2
+  scene.add(tank3)
+
+  //tank animation 
+
+//tank 1
+const tank1StartZ = 350;
+const tank1EndZ = 210;
+const tank1FadeDistance = 25;
+const tank1Speed = 3;
+
+tank1.traverse((child) => {
+  if (child.isMesh && child.material) {
+    child.material.transparent = true;
+    child.material.depthWrite = false; // Giúp blending mượt mà hơn khi mờ
+  }
+});
+
+
+//tank 2+3
+let tankStartZ = 395;
+let tankEndZ = 260
+let fadeDistance = 25;
+let tankSpeed = 2;
+
+tank2.traverse((child) => {
+  if (child.isMesh && child.material) {
+    child.material.transparent = true;
+    child.material.depthWrite = false; // Giúp blending mượt mà hơn khi mờ
+  }
+});
+
+tank3.traverse((child) => {
+  if (child.isMesh && child.material) {
+    child.material.transparent = true;
+    child.material.depthWrite = false; // Giúp blending mượt mà hơn khi mờ
+  }
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (tank2) {
+    tank2.position.z -= tankSpeed; // đi từ xa về gần
+
+    const distanceToEnd = tank2.position.z - tankEndZ;
+
+    tank2.traverse((child) => {
+      if (child.isMesh) {
+        if (distanceToEnd < fadeDistance) {
+          const fadeProgress = Math.max(0, distanceToEnd / fadeDistance);
+          child.material.opacity = fadeProgress;
+        } else {
+          child.material.opacity = 1;
+        }
+      }
+    });
+
+    if (tank2.position.z < tankEndZ) {
+      tank2.position.z = tankStartZ;
+    }
   }
 
+    if (tank3) {
+    tank3.position.z -= tankSpeed; // đi từ xa về gần
+
+    const distanceToEnd = tank3.position.z - tankEndZ;
+
+    tank3.traverse((child) => {
+      if (child.isMesh) {
+        if (distanceToEnd < fadeDistance) {
+          const fadeProgress = Math.max(0, distanceToEnd / fadeDistance);
+          child.material.opacity = fadeProgress;
+        } else {
+          child.material.opacity = 1;
+        }
+      }
+    });
+
+    if (tank3.position.z < tankEndZ) {
+      tank3.position.z = tankStartZ;
+    }
+  }
+
+    if(tank1){
+        tank1.position.z -= tank1Speed;
+
+        const tank1DistanceToEnd = tank1.position.z - tank1EndZ;
+
+        tank1.traverse((child) => {
+          if (child.isMesh) {
+            if (tank1DistanceToEnd < tank1FadeDistance) {
+              const tank1FadeProgress = Math.max(0, tank1DistanceToEnd / tank1FadeDistance);
+              child.material.opacity = tank1FadeProgress;
+            } else {
+              child.material.opacity = 1;
+            }
+          }
+        });
+
+        if (tank1.position.z < tank1EndZ) {
+          tank1.position.z = tank1StartZ;
+        }
+          }
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+
+
   animate();
+}
+
+
+export function playMusic(audioListener, url, loop = true, volume = 1.5) {
+  const audioLoader = new THREE.AudioLoader();
+  const sound = new THREE.Audio(audioListener);
+
+  audioLoader.load(url, (buffer) => {
+    sound.setBuffer(buffer);
+    sound.setLoop(loop);
+    sound.setVolume(volume);
+    sound.play();
+  });
+
+  return sound;
 }

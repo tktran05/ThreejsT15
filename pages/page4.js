@@ -1,8 +1,8 @@
-// dương văn kiên
+//AUTHOR: Dương Văn Kiên - ID: 20233857
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-
+import { playMusic } from './page6';
 export function init(container) {
   const camera = new THREE.PerspectiveCamera(
     75,
@@ -11,11 +11,16 @@ export function init(container) {
     10000
   );
 
-  camera.position.set(200, 200, 300);
+  camera.position.set(50, 50, 50);
   camera.lookAt(0, 0, 0);
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xfce4ec); // Màu nền hồng nhạt
+
+  //music
+  const listener = new THREE.AudioListener();
+  camera.add(listener);
+  const backgroundMusic = playMusic(listener, '/sounds/morning.mp3');
 
   // light
   const ambient = new THREE.HemisphereLight(0xffffff, 0xbfd4d2, 1.5);

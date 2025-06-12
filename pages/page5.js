@@ -1,403 +1,360 @@
+//AUTHOR: Trần Phan Anh - ID: 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// Gói toàn bộ logic khởi tạo vào một hàm init() và xuất nó ra
-export function init() {
+import { playMusic } from './page6';
 
-    // 1. Khởi tạo Scene, Camera, Renderer
+export function init(container) {
+    container.innerHTML = '';
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'webgl';
+    container.appendChild(canvas);
+
+    const appRect = container.getBoundingClientRect();
+    container.style.height = `${window.innerHeight - appRect.top - 5}px`;
+    container.style.width = '100%';
+
+    // 1. Thiết lập cảnh (Scene)
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xa0d0f0); // Light blue background color
+    scene.background = new THREE.Color(0x87ceeb);
 
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true }); // Enable antialiasing
-    renderer.shadowMap.enabled = true; // Enable shadows
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+    const camera = new THREE.PerspectiveCamera(
+        75,
+        container.clientWidth / container.clientHeight,
+        0.1,
+        2000 // Đảm bảo render khoảng cách xa
+    );
+    camera.position.set(0, 30, 80);
+    camera.lookAt(0, 0, 0);
 
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // Set CSS for html and body to remove default margins/paddings and ensure full viewport height
-    document.documentElement.style.margin = '0';
-    document.documentElement.style.padding = '0';
-    document.documentElement.style.height = '100%'; 
-    document.body.style.margin = '0';
-    document.body.style.padding = '0';
-    document.body.style.overflow = 'hidden'; 
-    document.body.style.height = '100%'; 
+    
 
-    // Create a DIV container for the Three.js canvas
-    const threeJsContainer = document.createElement('div');
-    threeJsContainer.id = 'threejs-canvas-container';
-    threeJsContainer.style.width = '100vw';
-    threeJsContainer.style.display = 'block';
-    threeJsContainer.style.position = 'relative'; 
-    document.body.appendChild(threeJsContainer);
-
-    // Function to update container and renderer size
-    function updateThreeJsContainerSize() {
-        // Get the height of content above the Three.js container
-        const contentAboveHeight = threeJsContainer.getBoundingClientRect().top;
-        threeJsContainer.style.height = `calc(100vh - ${contentAboveHeight}px)`;
-
-        const containerWidth = threeJsContainer.offsetWidth;
-        const containerHeight = threeJsContainer.offsetHeight;
-
-        renderer.setSize(containerWidth, containerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio); // Adjust pixel ratio for Retina displays
-        camera.aspect = containerWidth / containerHeight;
-        camera.updateProjectionMatrix();
-    }
-
-    threeJsContainer.appendChild(renderer.domElement);
-    renderer.domElement.style.width = '100%';
-    renderer.domElement.style.height = '100%';
-    renderer.domElement.style.display = 'block';
-
-    // Call update size function on DOMContentLoaded and load events
-    window.addEventListener('DOMContentLoaded', updateThreeJsContainerSize);
-    window.addEventListener('load', updateThreeJsContainerSize); 
-
-
-    // 2. Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // Ambient light
+    // 2. Thêm ánh sáng (và cấu hình đổ bóng)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8); // Directional light (like sun)
-    dirLight.position.set(20, 30, 20);
-    dirLight.castShadow = true;
-    scene.add(dirLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
+    directionalLight.position.set(15, 20, 10);
+    directionalLight.castShadow = true;
+    scene.add(directionalLight);
 
-    // DIRECTIONAL LIGHT SHADOW SETTINGS
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
-    const d = 35;
-    dirLight.shadow.camera.left = -d;
-    dirLight.shadow.camera.right = d;
-    dirLight.shadow.camera.top = d;
-    dirLight.shadow.camera.bottom = -d;
-    dirLight.shadow.camera.near = 0.1;
-    dirLight.shadow.camera.far = 80;
-    dirLight.shadow.bias = -0.0005;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.camera.near = 0.5;
+    directionalLight.shadow.camera.far = 100;
+    directionalLight.shadow.camera.left = -50;
+    directionalLight.shadow.camera.right = 50;
+    directionalLight.shadow.camera.top = 50;
+    directionalLight.shadow.camera.bottom = -50;
+    directionalLight.shadow.bias = -0.0005;
 
-    // 3. Grass ground (using color and normal texture)
-    const textureLoader = new THREE.TextureLoader();
-    const grassColorMap = textureLoader.load('textures/grass/grass_color.jpg', 
-        (texture) => {
-            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(50, 50);
-            groundMaterial.map = texture;
-            groundMaterial.needsUpdate = true;
-        },
-        undefined,
-        (err) => console.error('Lỗi tải texture cỏ:', err)
-    );
-    const grassNormalMap = textureLoader.load('textures/grass/grass_normal.jpg', 
-        (texture) => {
-            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(50, 50);
-            groundMaterial.normalMap = texture; // Assign normal map
-            groundMaterial.needsUpdate = true;
-        },
-        undefined,
-        (err) => console.error('Lỗi tải normal map cỏ:', err)
-    );
+    // --- Gọi hàm Tank để tạo xe tăng ---
+    const tank = Tank();
+    scene.add(tank);
 
-    const groundGeometry = new THREE.PlaneGeometry(200, 200);
-    const groundMaterial = new THREE.MeshStandardMaterial({
-        roughness: 1,
-        metalness: 0
-    });
+    // --- Thêm mặt phẳng sàn để nhận bóng ---
+    const groundGeometry = new THREE.PlaneGeometry(150, 150);
+    const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x999999, side: THREE.DoubleSide });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
+    ground.position.y = 0; // Đặt mặt phẳng sát trục Y=0
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // 4. Ring track (using a single color texture)
-    const outerRadius = 30, innerRadius = 25, segments = 128;
-    const trackGeometry = new THREE.RingGeometry(innerRadius, outerRadius, segments);
-    const trackMaterial = new THREE.MeshPhongMaterial({ color: 0x808080, side: THREE.DoubleSide });
+    // --- Thêm đạn và hiệu ứng bắn ---
+    const bullets = []; // Mảng lưu các viên đạn
 
-    const roadColorMap = textureLoader.load('textures/road/road_color.jpg',
-        (texture) => {
-            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(10, 10);
-            trackMaterial.map = texture;
-            trackMaterial.needsUpdate = true;
+    // Thêm AudioListener
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+
+    // Tải âm thanh
+    const audioLoader = new THREE.AudioLoader();
+    const gunshotSound = new THREE.PositionalAudio(listener);
+    audioLoader.load(
+        'sounds/gunshot.mp3', // Đường dẫn đến tệp âm thanh (cần đặt đúng trong dự án)
+        (buffer) => {
+            gunshotSound.setBuffer(buffer);
+            gunshotSound.setRefDistance(20);
+            gunshotSound.setLoop(false); // Không lặp lại
         },
         undefined,
-        (err) => console.error('Lỗi tải texture đường:', err)
-    );
-
-    const track = new THREE.Mesh(trackGeometry, trackMaterial);
-    track.rotation.x = -Math.PI / 2;
-    track.position.y = 0.01;
-    track.receiveShadow = true;
-    scene.add(track);
-
-    // 5. Dashed line on track
-    const dashRadius = (outerRadius + innerRadius) / 2;
-    const dashPoints = [];
-    for (let i = 0; i <= segments; i++) {
-        const angle = (i / segments) * Math.PI * 2;
-        dashPoints.push(new THREE.Vector3(dashRadius * Math.cos(angle), 0.02, dashRadius * Math.sin(angle)));
-    }
-    const dashGeometry = new THREE.BufferGeometry().setFromPoints(dashPoints);
-    const dashMaterial = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 0.7, gapSize: 0.7 });
-    const dashedLine = new THREE.Line(dashGeometry, dashMaterial);
-    dashedLine.computeLineDistances();
-    scene.add(dashedLine);
-
-    // 6. Orange outer and inner borders
-    function createCircleLine(radius, color) {
-        const points = [];
-        for (let i = 0; i <= segments; i++) {
-            const angle = (i / segments) * Math.PI * 2;
-            points.push(new THREE.Vector3(radius * Math.cos(angle), 0.02, radius * Math.sin(angle)));
+        (err) => {
+            console.error('Lỗi khi tải âm thanh:', err);
         }
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const material = new THREE.LineBasicMaterial({ color });
-        return new THREE.Line(geometry, material);
-    }
-    scene.add(createCircleLine(outerRadius, 0xffa500));
-    scene.add(createCircleLine(innerRadius, 0xffa500));
-
-    // 7. Circular fountain (using a single color texture)
-    const fountainRadius = 10; 
-    const fountainHeight = 0.5; 
-    const fountainGeometry = new THREE.CylinderGeometry(fountainRadius, fountainRadius, fountainHeight, 64);
-    const fountainMaterial = new THREE.MeshPhongMaterial({ color: 0x808080 });
-
-    const fountainColorMap = textureLoader.load('textures/fountain/stone_color.jpg',
-        (texture) => {
-            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(4, 4); 
-            fountainMaterial.map = texture;
-            fountainMaterial.needsUpdate = true;
-        },
-        undefined,
-        (err) => console.error('Lỗi tải texture đài phun nước:', err)
     );
+    tank.userData.turret.add(gunshotSound); // Gắn âm thanh vào tháp pháo
 
-    const fountain = new THREE.Mesh(fountainGeometry, fountainMaterial);
-    fountain.position.y = fountainHeight / 2 + 0.01;
-    fountain.castShadow = true;
-    scene.add(fountain);
+    function shootBullet() {
+        // Tạo đạn (quả cầu nhỏ màu đỏ)
+        const bulletGeometry = new THREE.SphereGeometry(3, 16, 16);
+        const bulletMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+        bullet.castShadow = true;
 
-    // 8. 3D Eight-pointed star (NO TEXTURE - using solid color)
-    const starShape = new THREE.Shape();
-    const outerStar = 6; 
-    const innerStar = 2.5; 
-    const numPoints = 8; 
-    for (let i = 0; i < numPoints * 2; i++) {
-        const angle = (i / (numPoints * 2)) * Math.PI * 2;
-        const radius = i % 2 === 0 ? outerStar : innerStar;
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * radius;
-        if (i === 0) starShape.moveTo(x, y);
-        else starShape.lineTo(x, y);
+        // Vị trí bắt đầu: đầu nòng pháo
+        const barrelEndLocal = new THREE.Vector3(37, 0, 0); // Đầu nòng theo trục X cục bộ
+        const barrelEndWorld = barrelEndLocal.clone().applyMatrix4(tank.userData.turret.matrixWorld);
+        bullet.position.copy(barrelEndWorld);
+
+        // Hướng bắn: dựa trên góc xoay của tháp pháo
+        const turretMatrix = tank.userData.turret.matrixWorld;
+        const direction = new THREE.Vector3(1, 0, 0).applyMatrix3(new THREE.Matrix3().setFromMatrix4(turretMatrix)).normalize();
+        bullet.userData.velocity = direction.multiplyScalar(5); // Tốc độ đạn
+
+        scene.add(bullet);
+        bullets.push(bullet);
+
+        // Thêm ánh sáng điểm tạm thời (tia lửa)
+        const flashLight = new THREE.PointLight(0xffa500, 4, 11);
+        flashLight.position.copy(barrelEndWorld);
+        scene.add(flashLight);
+
+        // Phát âm thanh khi bắn
+        if (gunshotSound.isPlaying) gunshotSound.stop(); // Dừng nếu đang phát
+        gunshotSound.play();
+
+        // Xóa ánh sáng sau 0.5 giây
+        setTimeout(() => {
+            scene.remove(flashLight);
+            flashLight.dispose();
+        }, 500);
     }
-    starShape.closePath();
 
-    const starGeometry = new THREE.ExtrudeGeometry(starShape, {
-        depth: 0.3, 
-        bevelEnabled: true,
-        bevelThickness: 0.05,
-        bevelSize: 0.05,
-        bevelSegments: 3
+    // --- Thêm điều khiển bàn phím cho xe tăng ---
+    let isMovingForward = false;
+    let isMovingBackward = false;
+    let isTurretRotatingLeft = false;
+    let isTurretRotatingRight = false;
+
+    document.addEventListener('keydown', (event) => {
+        switch (event.key) {
+            case 'ArrowUp': isMovingForward = true; break;
+            case 'ArrowDown': isMovingBackward = true; break;
+            case 'ArrowLeft': isTurretRotatingLeft = true; break;
+            case 'ArrowRight': isTurretRotatingRight = true; break;
+            case ' ': // Phím Space để bắn
+                event.preventDefault(); // Ngăn hành vi mặc định (cuộn trang)
+                shootBullet();
+                break;
+        }
     });
-    const starMaterial = new THREE.MeshPhongMaterial({ color: 0xffff00, shininess: 100 }); 
-    const star = new THREE.Mesh(starGeometry, starMaterial);
-    star.rotation.x = -Math.PI / 2;
-    star.position.y = fountainHeight + 0.05; 
-    star.castShadow = true; 
-    scene.add(star);
 
-    // 8.3. Fountain inner shadow circle
-    const fountainShadow = new THREE.Mesh(
-        new THREE.CircleGeometry(fountainRadius * 0.95, 64), 
-        new THREE.MeshBasicMaterial({ color: 0x000000, opacity: 0.2, transparent: true })
-    );
-    fountainShadow.rotation.x = -Math.PI / 2;
-    fountainShadow.position.y = 0.005;
-    scene.add(fountainShadow);
+    document.addEventListener('keyup', (event) => {
+        switch (event.key) {
+            case 'ArrowUp': isMovingForward = false; break;
+            case 'ArrowDown': isMovingBackward = false; break;
+            case 'ArrowLeft': isTurretRotatingLeft = false; break;
+            case 'ArrowRight': isTurretRotatingRight = false; break;
+        }
+    });
 
-    // 8.4. Two realistic trees (using a single color texture for trunk, leaves will use solid color)
-    function createRealisticTree(x, z) {
-      const treeGroup = new THREE.Group(); 
-
-      const trunkHeight = 4; 
-      const trunkRadiusBottom = 2.0; 
-      const trunkRadiusTop = 0.5; 
-      const trunkGeometry = new THREE.CylinderGeometry(trunkRadiusTop, trunkRadiusBottom, trunkHeight, 24); 
-      const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 }); 
-
-      const woodColorMap = textureLoader.load('textures/wood/wood_color.jpg',
-        (texture) => {
-            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(2, 2); 
-            trunkMaterial.map = texture;
-            trunkMaterial.needsUpdate = true;
-        },
-        undefined,
-        (err) => console.error('Lỗi tải texture thân cây:', err)
-      );
-
-      const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-      trunk.position.y = trunkHeight / 2; 
-      trunk.castShadow = true;
-      trunk.receiveShadow = true;
-      treeGroup.add(trunk);
-
-      const numCanopySpheres = 8; 
-      const baseLeavesRadius = 2.8; 
-      const canopySpread = 3.5; 
-      const canopyBaseY = trunkHeight * 0.8; 
-
-      for (let j = 0; j < numCanopySpheres; j++) {
-          const sphereRadius = baseLeavesRadius * (0.6 + Math.random() * 0.4); 
-          const sphereGeometry = new THREE.SphereGeometry(sphereRadius, 32, 32); 
-          const sphereMaterial = new THREE.MeshPhongMaterial({ color: 0x228B45 }); 
-
-          const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-          const offsetX = (Math.random() - 0.5) * canopySpread * 1.5; 
-          const offsetZ = (Math.random() - 0.5) * canopySpread * 1.5; 
-          const offsetY = (Math.random() - 0.5) * (baseLeavesRadius * 1.0) + baseLeavesRadius * 0.5; 
-
-          sphere.position.set(offsetX, canopyBaseY + offsetY, offsetZ);
-          sphere.castShadow = true;
-          sphere.receiveShadow = true;
-          treeGroup.add(sphere);
-      }
-
-      treeGroup.position.set(x, 0, z); 
-      scene.add(treeGroup);
-    }
-
-    const treeRadiusOffset = 20; 
-    createRealisticTree(treeRadiusOffset, 0);
-    createRealisticTree(-treeRadiusOffset, 0);
-
-    // 9. Camera and Controls
-    camera.position.set(20, 25, 25);
-    camera.lookAt(0, 0, 0);
+    // --- Camera Control ---
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false;
+    controls.maxPolarAngle = Math.PI / 2;
+    controls.maxDistance = 150;
+    controls.minDistance = 20;
 
-    // 11. Resize
-    window.addEventListener('resize', updateThreeJsContainerSize);
+    // --- Animation loop ---
+    function animate() {
+        requestAnimationFrame(animate);
 
-    // 12. Vietnam Flag (Plane + Shape + animation)
-    const flagWidth = 5;
-    const flagHeight = 3;
-    const redMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000, side: THREE.DoubleSide });
-    const flagGeometry = new THREE.PlaneGeometry(flagWidth, flagHeight, 20, 10);
-    const flag = new THREE.Mesh(flagGeometry, redMaterial);
-    flag.castShadow = true;
-    flag.receiveShadow = false;
+        // Điều khiển xe tăng
+        if (isMovingForward) tank.position.x += 0.5;
+        if (isMovingBackward) tank.position.x -= 0.5;
+        if (isTurretRotatingLeft) tank.userData.turret.rotation.y += 0.03; // Xoay tháp pháo quanh trục Y
+        if (isTurretRotatingRight) tank.userData.turret.rotation.y -= 0.03;
 
-    const starShapeFlag = new THREE.Shape();
-    const outerR = 0.4;
-    const innerR = 0.17;
-    for (let i = 0; i < 10; i++) {
-        const angle = (i / 10) * Math.PI * 2 - Math.PI / 2;
-        const r = (i % 2 === 0) ? outerR : innerR;
-        const x = Math.cos(angle) * r;
-        const y = Math.sin(angle) * r;
-        if (i === 0) starShapeFlag.moveTo(x, y);
-        else starShapeFlag.lineTo(x, y);
-    }
-    starShapeFlag.closePath();
-    const starGeometryFlag = new THREE.ShapeGeometry(starShapeFlag);
-    const starMaterialFlag = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide });
-    const starMeshFlag = new THREE.Mesh(starGeometryFlag, starMaterialFlag);
-    starMeshFlag.position.set(0, 0.1, 0.01);
-    flag.add(starMeshFlag);
+        // Cập nhật vị trí đạn
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            const bullet = bullets[i];
+            bullet.position.add(bullet.userData.velocity);
 
-    const poleHeight = 18;
-    const poleRadius = 0.15;
-    const poleGeometry = new THREE.CylinderGeometry(poleRadius, poleRadius, poleHeight, 16);
-    const poleMaterial = new THREE.MeshPhongMaterial({ color: 0xaaaaaa });
-    const pole = new THREE.Mesh(poleGeometry, poleMaterial);
-    pole.castShadow = true;
-
-    // Flag Podium (using a single color texture)
-    const flagPodiumHeight = 0.8;
-    const flagPodiumRadiusTop = 1.5;
-    const flagPodiumRadiusBottom = 2;
-    const flagPodiumGeometry = new THREE.CylinderGeometry(flagPodiumRadiusTop, flagPodiumRadiusBottom, flagPodiumHeight, 32);
-    const flagPodiumMaterial = new THREE.MeshPhongMaterial({ color: 0x777777 });
-
-    const podiumColorMap = textureLoader.load('textures/podium/podium_color.jpg',
-        (texture) => {
-            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(2, 2); 
-            flagPodiumMaterial.map = texture;
-            flagPodiumMaterial.needsUpdate = true;
-        },
-        undefined,
-        (err) => console.error('Lỗi tải texture bục cột cờ:', err)
-    );
-
-    const flagPodium = new THREE.Mesh(flagPodiumGeometry, flagPodiumMaterial);
-    flagPodium.castShadow = true;
-    flagPodium.receiveShadow = true;
-    flagPodium.position.y = flagPodiumHeight / 2;
-    scene.add(flagPodium);
-
-    // Position flagpole and podium next to the central fountain
-    const distanceFromCenter = fountainRadius + flagPodiumRadiusBottom * 1.5;
-    const flagPodiumX = distanceFromCenter;
-    const flagPodiumZ = 0;
-
-    flagPodium.position.set(flagPodiumX, flagPodiumHeight / 2, flagPodiumZ);
-    pole.position.set(0, poleHeight / 2 + flagPodiumHeight / 2, 0);
-    flagPodium.add(pole);
-    flag.position.set(
-        poleRadius + flagWidth / 2,
-        poleHeight / 2 - flagHeight / 2,
-        0
-    );
-    pole.add(flag);
-    flagPodium.rotation.y = -Math.PI / 2;
-
-    // Flag waving animation
-    const flagVertices = flag.geometry.attributes.position;
-    const flagInitialPositions = new Float32Array(flagVertices.array);
-
-    function animateFlag(time) {
-        const waveSpeed = 0.002;
-        const waveHeight = 0.2;
-        const windEffect = 0.05;
-
-        for (let i = 0; i < flagVertices.count; i++) {
-            const x = flagInitialPositions[i * 3];
-            const y = flagInitialPositions[i * 3 + 1];
-
-            const zWave = Math.sin(x * 3 + time * waveSpeed) * waveHeight;
-            flagVertices.setZ(i, zWave);
-
-            const xBend = x + Math.sin(y * Math.PI / flagHeight) * windEffect;
-            flagVertices.setX(i, xBend);
+            // Xóa đạn nếu đi quá xa (> 500 đơn vị)
+            if (bullet.position.length() > 500) {
+                scene.remove(bullet);
+                bullet.geometry.dispose();
+                bullet.material.dispose();
+                bullets.splice(i, 1);
+            }
         }
-        flagVertices.needsUpdate = true;
-        flag.geometry.computeVertexNormals();
 
-        const starWaveZ = Math.sin(0 * 3 + time * waveSpeed) * waveHeight;
-        starMeshFlag.position.z = 0.01 + starWaveZ;
-        const starXBend = Math.sin(0 * Math.PI / flagHeight) * windEffect;
-        starMeshFlag.position.x = starXBend;
-    }
-
-    // Main render loop
-    function renderLoop(time) {
-        requestAnimationFrame(renderLoop);
         controls.update();
-        animateFlag(time);
         renderer.render(scene, camera);
     }
+    animate();
 
-    // Start the render loop immediately when the module is loaded
-    renderLoop(performance.now());
+    // --- Xử lý thay đổi kích thước cửa sổ ---
+    window.addEventListener('resize', () => {
+        const newAppRect = container.getBoundingClientRect();
+        container.style.height = `${window.innerHeight - newAppRect.top - 5}px`;
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+    });
+
+    console.log("Tank scene initialized. Use arrow keys to control tank, mouse to control camera, and Space to shoot.");
+    canvas.focus();
 }
 
-// Gọi hàm init() ngay lập tức để khởi chạy cảnh khi module được tải
-init();
+    export function Tank() {
+        const tank = new THREE.Group();
+
+        const textureLoader = new THREE.TextureLoader();
+
+        const loadTexture = (path, name) => {
+            return textureLoader.load(
+                path,
+                () => { console.log(`${name} texture loaded.`); },
+                undefined,
+                (err) => {
+                    console.warn(`Failed to load ${path}. Using fallback color.`, err);
+                }
+            );
+        };
+        
+        // Rotate the tank to lie flat on the ground
+        tank.rotation.x = -Math.PI / 2; // Quay -90 độ quanh trục X để nằm phẳng trên mặt đất
+
+        const metalTexture = loadTexture('textures/tank.jpg', 'Metal');
+
+        // === Thân xe (màu xanh quân đội) ===
+        const body = new THREE.Mesh(
+            new THREE.BoxGeometry(59, 15, 30),
+            new THREE.MeshStandardMaterial({ color: 0x556b2f })
+        );
+        body.position.set(0, 0, 10); // Đặt tâm thân xe ở gốc cục bộ
+        body.castShadow = true;
+        body.receiveShadow = true;
+        body.rotation.x = -Math.PI / 2;
+        tank.add(body);
+
+        // === Bánh xích (màu trắng) ===
+        const trackMaterial = new THREE.MeshStandardMaterial({ color: 0x024f1a });
+        const leftTrack = new THREE.Mesh(new THREE.BoxGeometry(60, 10, 6), trackMaterial);
+        leftTrack.position.set(0, -15, 5); // Điều chỉnh vị trí theo trục Z cục bộ
+        leftTrack.castShadow = true;
+        leftTrack.receiveShadow = true;
+        leftTrack.rotation.x = -Math.PI / 2; 
+        tank.add(leftTrack);
+
+        const rightTrack = new THREE.Mesh(new THREE.BoxGeometry(60, 10, 6), trackMaterial);
+        rightTrack.position.set(0, 15, 5);
+        rightTrack.castShadow = true;
+        rightTrack.receiveShadow = true;
+        rightTrack.rotation.x = Math.PI / 2;
+        tank.add(rightTrack);
+
+        // === Tháp pháo (màu xanh đậm với texture) ===
+        const turret = new THREE.Group();
+        turret.position.set(0, 0, 20); // Đặt tháp pháo trên thân xe
+        turret.rotation.x = Math.PI/2;
+
+        const turretBase = new THREE.Mesh(
+            new THREE.BoxGeometry(20, 10, 20),
+            new THREE.MeshStandardMaterial({ map: metalTexture, color: 0x004d00 })
+        );
+        turretBase.position.set(0, 0, 0); // Tâm tháp pháo ở gốc cục bộ
+        turretBase.castShadow = true;
+        turretBase.receiveShadow = true;
+        turret.add(turretBase);
+
+        // === Nòng pháo (xám nhạt) ===
+        const barrel = new THREE.Mesh(
+            new THREE.BoxGeometry(30, 4, 4),
+            new THREE.MeshStandardMaterial({ color: 0xb0b0b0 })
+        );
+        barrel.position.set(20, 0, 0); // Nòng pháo hướng theo trục X cục bộ
+        barrel.castShadow = true;
+        barrel.receiveShadow = true;
+        turret.add(barrel);
+
+        // === Thêm cờ đỏ với ngôi sao vàng ===
+        // Cột cờ
+        const flagPole = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.2, 0.2, 10, 16),
+            new THREE.MeshStandardMaterial({ color: 0x555555 })
+        );
+        flagPole.position.set(0, 10, 0); // Đặt trên tháp pháo
+        flagPole.rotation.x = 0; // Cột cờ đứng thẳng
+        flagPole.rotation.y = Math.PI/2; // Cột cờ đứng thẳng
+        flagPole.castShadow = true;
+        flagPole.receiveShadow = true;
+        turretBase.add(flagPole);
+
+        // Lá cờ 
+        const flag = Flag()
+        flag.scale.setScalar(0.4)
+        flag.position.z = 32
+        flag.position.y = 6
+        flag.rotation.y = Math.PI/2
+        flag.rotation.x = Math.PI/2
+
+        
+        tank.add(flag)
+        
+
+        tank.add(turret);
+        tank.userData.turret = turret;
+
+        return tank;
+
+        function Flag() {
+          const sizeW = 30, sizeH = 20, segW = 30, segH = 20;
+        
+          const geometry = new THREE.PlaneGeometry(sizeW, sizeH, segW, segH).toNonIndexed();
+          const positionAttr = geometry.attributes.position;
+          const vertexCount = positionAttr.count;
+          const originalPositions = new Float32Array(positionAttr.array); // sao lưu vị trí gốc
+        
+          const materialParams = {
+            side: THREE.DoubleSide,
+          };
+        
+          const texture = new THREE.TextureLoader().load('textures/flag.png');
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.minFilter = THREE.LinearFilter;
+          texture.magFilter = THREE.LinearFilter;
+          materialParams.map = texture;
+        
+          const material = new THREE.MeshLambertMaterial(materialParams);
+          const flag = new THREE.Mesh(geometry, material);
+          flag.castShadow = true;
+          flag.position.set(0, sizeH / 2, 0);
+        
+          // Sóng động
+          const h = 0.5, v = 1, w = 0.4, s = 0.5;
+        
+          function animateFlag() {
+            const time = Date.now() * s / 50;
+            for (let i = 0; i < vertexCount; i++) {
+              const x = originalPositions[i * 3];
+              const y = originalPositions[i * 3 + 1];
+        
+              // Không cập nhật sóng cho cột bên trái (gần -sizeW / 2)
+              if (x <= -sizeW / 2 + 0.01) continue;
+        
+              const z = Math.sin(h * x + v * y - time) * w * x / 4;
+              positionAttr.setZ(i, z);
+            }
+            positionAttr.needsUpdate = true;
+            requestAnimationFrame(animateFlag);
+          }
+        
+          animateFlag();
+          return flag;
+        
+        }
+    }
